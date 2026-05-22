@@ -1,0 +1,253 @@
+/* Variabili CSS per palette colori professionale */
+:root {
+    --nav-bg: #1a252f;
+    --side-bg: #2c3e50;
+    --side-hover: #34495e;
+    --accent: #3498db;
+    --bg-main: #ecf0f1;
+    --text-dark: #2c3e50;
+    --text-light: #bdc3c7;
+    --card-bg: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-dark);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Barra di navigazione superiore */
+.navbar {
+    background-color: var(--nav-bg);
+    color: white;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.navbar .brand {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.navbar .user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-logout {
+    background-color: #e74c3c;
+    color: white;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.btn-logout:hover { background-color: #c0392b; }
+
+/* Contenitore principale a due colonne */
+.app-container {
+    display: flex;
+    flex: 1;
+    height: calc(100vh - 60px);
+}
+
+/* Barra laterale */
+.sidebar {
+    width: 250px;
+    background-color: var(--side-bg);
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-title {
+    padding: 20px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #7f8c8d;
+    border-bottom: 1px solid #1a252f;
+}
+
+.semaforo-item {
+    padding: 15px 20px;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+    transition: all 0.2s;
+}
+
+.semaforo-item:hover {
+    background-color: var(--side-hover);
+    color: white;
+}
+
+.semaforo-item.active {
+    background-color: var(--side-hover);
+    border-left-color: var(--accent);
+    color: white;
+    font-weight: 500;
+}
+
+/* Area principale dei dati */
+.main-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.header-dati {
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+/* Griglia delle metriche */
+.sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background-color: var(--card-bg);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e0e6ed;
+}
+
+.card h3 {
+    font-size: 1rem;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.card .valore {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.unita {
+    font-size: 1rem;
+    color: #95a5a6;
+    margin-left: 5px;
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    background-color: #2ecc71;
+    color: white;
+}
+
+/* =========================================
+   Stili specifici per la pagina di Login
+   ========================================= */
+
+/* Centratura assoluta del contenitore */
+.login-body {
+    justify-content: center;
+    align-items: center;
+    background-color: var(--nav-bg);
+}
+
+/* UI della scheda di autenticazione */
+.login-card {
+    background-color: var(--card-bg);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-card h2 {
+    color: var(--text-dark);
+    margin-bottom: 25px;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Moduli di input formattati */
+.login-card .form-group {
+    margin-bottom: 20px;
+}
+
+.login-card label {
+    display: block;
+    margin-bottom: 8px;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.login-card input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e0e6ed;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    background-color: #f8f9fa;
+}
+
+.login-card input:focus {
+    border-color: var(--accent);
+    outline: none;
+    background-color: #ffffff;
+}
+
+/* Pulsante di invio */
+.login-card button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.login-card button:hover {
+    background-color: #2980b9;
+}
+
+/* Notifica di errore credenziali */
+.login-card .alert {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    text-align: center;
+    border: 1px solid #f5c6cb;
+}
