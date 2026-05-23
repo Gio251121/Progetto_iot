@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `semafori` (
 --
 
 INSERT INTO `semafori` (`id`, `codice_seriale`, `nome_incrocio`, `password`, `latitudine`, `longitudine`, `creato_at`, `aggiornato_at`) VALUES
-(1, 'semaforo_01', 'Incrocio Centrale', '$2y$10$7Z8Hh9Kx7mB9L4dE2fR3uOnVxY6ZpWqQrRsStTuUvVwWxXyYzZmMa', 45.46420300, 9.19003100, '2026-05-22 08:38:14', '2026-05-22 08:38:14');
+(1, 'semaforo_01', 'Rotonda', '$2y$10$7Z8Hh9Kx7mB9L4dE2fR3uOnVxY6ZpWqQrRsStTuUvVwWxXyYzZmMa', 45.552641, 11.553811, '2026-05-22 08:38:14', '2026-05-22 08:38:14');
 
 -- --------------------------------------------------------
 
