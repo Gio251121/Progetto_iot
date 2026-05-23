@@ -77,16 +77,27 @@ require_once 'navbar.php';
 
             <div class="sensor-grid">
                 <div class="card">
-                    <h3>Temperatura Interna</h3>
+                    <h3>Temperatura</h3>
                     <span class="valore" id="val_temp">--</span><span class="unita">°C</span>
                 </div>
                 <div class="card">
-                    <h3>Umidità Relativa</h3>
+                    <h3>Umidità</h3>
                     <span class="valore" id="val_umid">--</span><span class="unita">%</span>
                 </div>
                 <div class="card">
                     <h3>Densità Traffico</h3>
-                    <span class="valore" id="val_traffico">--</span><span class="unita">veicoli/m</span>
+                    <span class="valore" id="val_traffico">--</span><span class="unita"></span>
+                </div>
+            </div>
+
+            <div class="sensor-grid">
+                <div class="card">
+                    <h3>Visibilità</h3>
+                    <span class="valore" id="val_temp">--</span><span class="unita">°C</span>
+                </div>
+                <div class="card">
+                    <h3>Pioggia</h3>
+                    <span class="valore" id="val_temp">--</span><span class="unita">°C</span>
                 </div>
             </div>
 
@@ -108,12 +119,23 @@ require_once 'navbar.php';
         <?php endif; ?>
     </main>
 
-    <div class="card" style="text-align: center;">
+    <div class="card" style="text-align: left;">
         <h3>Stato Luci In Tempo Reale</h3>
         <div class="semaforo-grafico">
             <div class="luce rossa" id="luce-rosso"></div>
             <div class="luce gialla" id="luce-giallo"></div>
             <div class="luce verde" id="luce-verde"></div>
+        </div>
+
+        <div style="margin-top: 25px; border-top: 1px solid #e0e6ed; padding-top: 15px;">
+            <h4 style="color: #7f8c8d; margin-bottom: 10px; font-size: 1rem; text-align: left;">Indicatori Diagnostici</h4>
+
+            <div id="pannello-allerte" style="display: flex; flex-direction: column;">
+                <div id="alert-ghiaccio" class="alert-dynamic">Pericolo ghiaccio in carreggiata</div>
+                <div id="alert-calore" class="alert-dynamic">Surriscaldamento asfalto o hardware</div>
+                <div id="alert-traffico" class="alert-dynamic">Congestione traffico rilevata</div>
+                <div id="alert" class="alert-dynamic">Nessun problema da rilevare</div>
+            </div>
         </div>
     </div>
 </div>
@@ -135,6 +157,7 @@ require_once 'navbar.php';
 
             if (data.payload) {
                 const payload = JSON.parse(data.payload);
+
                 document.getElementById('timestamp').innerText = data.ricevuto_at;
                 document.getElementById('val_temp').innerText = payload.temperatura ?? '--';
                 document.getElementById('val_umid').innerText = payload.umidita ?? '--';
@@ -142,6 +165,31 @@ require_once 'navbar.php';
 
                 document.getElementById('stato-connessione').innerText = 'Online';
                 document.getElementById('stato-connessione').style.backgroundColor = '#2ecc71';
+
+                // --- LOGICA ALLERTE FISSE ---
+                const temp = parseFloat(payload.temperatura);
+
+                // Lettura del traffico come stringa (normalizzata in minuscolo per evitare errori di case-sensitivity)
+                const traffico = payload.traffico ? payload.traffico.toString().trim().toLowerCase() : '';
+
+                // 1. Reset: contrae e nasconde tutti gli avvisi ad ogni ciclo
+                document.getElementById('alert-ghiaccio').classList.remove('active');
+                document.getElementById('alert-calore').classList.remove('active');
+                document.getElementById('alert-traffico').classList.remove('active');
+
+                // 2. Valutazione soglie Termiche
+                if (!isNaN(temp)) {
+                    if (temp <= 3) {
+                        document.getElementById('alert-ghiaccio').classList.add('active');
+                    } else if (temp >= 28) {
+                        document.getElementById('alert-calore').classList.add('active');
+                    }
+                }
+
+                // 3. Valutazione congestione Traffico (stringa)
+                if (traffico === 'alto') {
+                    document.getElementById('alert-traffico').classList.add('active');
+                }
             } else {
                 document.getElementById('stato-connessione').innerText = 'Nessun Dato';
                 document.getElementById('stato-connessione').style.backgroundColor = '#e74c3c';
