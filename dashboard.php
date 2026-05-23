@@ -107,7 +107,18 @@ require_once 'navbar.php';
             <p>Contatta l'amministratore di sistema per richiedere l'assegnazione dei semafori.</p>
         <?php endif; ?>
     </main>
+
+    <div class="card" style="text-align: center;">
+        <h3>Stato Luci In Tempo Reale</h3>
+        <div class="semaforo-grafico">
+            <div class="luce rossa" id="luce-rosso"></div>
+            <div class="luce gialla" id="luce-giallo"></div>
+            <div class="luce verde" id="luce-verde"></div>
+        </div>
+    </div>
 </div>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
 <script>
     // Configurazione polling dati
@@ -174,6 +185,78 @@ require_once 'navbar.php';
         fetchDatiSensori();
         pollingInterval = setInterval(fetchDatiSensori, 2000);
     }
+
+
+
+    // Callback quando arriva un messaggio dall'ESP32
+    if (typeof mqtt === 'undefined') {
+        alert("Errore critico: il browser blocca ancora internet. Usa Google Chrome!");
+    } else {
+        console.log("Libreria MQTT.js caricata correttamente!");
+
+        // Configurazione per HiveMQ Cloud (Nota l'uso di 'wss://' per la sicurezza TLS)
+        const brokerUrl = "wss://bf89bd34a48e407abd232255e6194d47.s1.eu.hivemq.cloud:8884/mqtt";
+        const opzioniMqtt = {
+            clientId: "web_client_" + Math.random().toString(16).substring(2, 8),
+            username: "DevWebsite", // <-- Sostituisci se hai cambiato utente
+            password: "DevWebsite123" // <-- Sostituisci se hai cambiato password
+        };
+
+        // Avvio connessione
+        const client = mqtt.connect(brokerUrl, opzioniMqtt);
+
+        // Evento: Connessione Riuscita
+        client.on('connect', function () {
+            console.log("✅ Connesso al broker HiveMQ via WebSocket!");
+
+            // Iscrizione al topic del semaforo
+            client.subscribe('esp/luce', function (err) {
+                if (!err) {
+                    console.log("In ascolto dei comandi sul topic esp32/luci...");
+                }
+            });
+        });
+
+        // Evento: Messaggio Ricevuto
+        client.on('message', function (topic, message) {
+            // message arriva come buffer, lo trasformiamo in stringa testuale
+            const comando = message.toString().trim().toLowerCase();
+            console.log("Ricevuto comando: " + comando);
+
+            aggiornaStatoGrafico(comando);
+        });
+
+        // Evento: Errore
+        client.on('error', function (error) {
+            console.error("Errore di connessione:", error);
+            document.getElementById('stato-connessione').innerText = 'Errore Broker';
+            document.getElementById('stato-connessione').style.backgroundColor = '#e74c3c';
+        });
+    }
+
+    // Funzione per aggiornare i colori a schermo
+    function aggiornaStatoGrafico(stato) {
+        // Spegniamo prima tutte le luci
+        document.getElementById('luce-rosso').classList.remove('attiva');
+        document.getElementById('luce-giallo').classList.remove('attiva');
+        document.getElementById('luce-verde').classList.remove('attiva');
+
+        // Accendiamo quella ricevuta dal messaggio
+        if (stato === 'rosso') {
+            document.getElementById('luce-rosso').classList.add('attiva');
+        } else if (stato === 'giallo') {
+            document.getElementById('luce-giallo').classList.add('attiva');
+        } else if (stato === 'verde') {
+            document.getElementById('luce-verde').classList.add('attiva');
+        } else if (stato === 'spento') {
+            document.getElementById('luce-rosso').classList.remove('attiva');
+            document.getElementById('luce-giallo').classList.remove('attiva');
+            document.getElementById('luce-verde').classList.remove('attiva');
+        }
+    }
 </script>
+
+
+
 </body>
 </html>
