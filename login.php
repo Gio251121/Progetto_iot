@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="password" id="password" name="password" required autocomplete="current-password">
         </div>
 
-        <button type="submit">Accedi al Sistema</button>
+        <button type="submit">Accedi</button>
     </form>
 </div>
 

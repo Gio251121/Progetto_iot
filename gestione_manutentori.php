@@ -112,7 +112,7 @@ $report = $pdo->query($query_report)->fetchAll(PDO::FETCH_ASSOC);
 <div class="app-container">
     <main class="main-content" style="max-width: 1100px; margin: 0 auto; display: block;">
 
-        <a href="dashboard.php" class="btn-back">⬅ Torna alla Dashboard</a>
+        <a href="dashboard.php" class="btn-back">Torna alla Dashboard</a>
 
         <h1 style="margin-bottom: 25px; color: #2c3e50;">Access Control Management</h1>
 
@@ -121,7 +121,7 @@ $report = $pdo->query($query_report)->fetchAll(PDO::FETCH_ASSOC);
         <div class="admin-grid">
 
             <div class="admin-card">
-                <h3>Creazione Profilo Tecnico</h3>
+                <h3>Creazione Profilo</h3>
                 <form method="POST" action="gestione_manutentori.php">
                     <input type="hidden" name="azione" value="nuovo_manutentore">
 
@@ -136,7 +136,7 @@ $report = $pdo->query($query_report)->fetchAll(PDO::FETCH_ASSOC);
                     </div>
 
                     <div class="form-group">
-                        <label for="password">Password Iniziale</label>
+                        <label for="password">Password</label>
                         <input type="password" id="password" name="password" class="form-control" required>
                     </div>
 
@@ -145,14 +145,14 @@ $report = $pdo->query($query_report)->fetchAll(PDO::FETCH_ASSOC);
             </div>
 
             <div class="admin-card">
-                <h3>Assegnazione Nodo IoT</h3>
+                <h3>Assegnazione Semaforo IoT</h3>
                 <form method="POST" action="gestione_manutentori.php">
                     <input type="hidden" name="azione" value="assegna_semaforo">
 
                     <div class="form-group">
                         <label for="manutentore_id">Seleziona Operatore</label>
                         <select id="manutentore_id" name="manutentore_id" class="form-control" required>
-                            <option value="">-- Nessuna selezione --</option>
+                            <option value="">Nessuna selezione </option>
                             <?php foreach ($manutentori as $m): ?>
                                 <option value="<?php echo $m['id']; ?>"><?php echo htmlspecialchars($m['username']); ?></option>
                             <?php endforeach; ?>
@@ -162,7 +162,7 @@ $report = $pdo->query($query_report)->fetchAll(PDO::FETCH_ASSOC);
                     <div class="form-group">
                         <label for="semaforo_id">Seleziona Dispositivo Hardware</label>
                         <select id="semaforo_id" name="semaforo_id" class="form-control" required>
-                            <option value="">-- Nessuna selezione --</option>
+                            <option value="">Nessuna selezione</option>
                             <?php foreach ($semafori as $s): ?>
                                 <option value="<?php echo $s['id']; ?>">
                                     <?php echo htmlspecialchars($s['codice_seriale']); ?> - <?php echo htmlspecialchars($s['nome_incrocio']); ?>
