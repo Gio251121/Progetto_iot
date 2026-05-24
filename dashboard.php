@@ -27,8 +27,10 @@ if ($ruolo == 1) {
 }
 $semafori = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Impostazione del nodo di default per il caricamento iniziale
 $primo_semaforo = $semafori[0] ?? null;
+
+// Codifica dell'intero array dei semafori in JSON per il modulo JavaScript della mappa
+$semafori_json = json_encode($semafori);
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -36,6 +38,7 @@ $primo_semaforo = $semafori[0] ?? null;
     <meta charset="UTF-8">
     <title>Pannello di Controllo - Semafori IoT</title>
     <link rel="stylesheet" href="style.css">
+
 </head>
 <body>
 
@@ -103,14 +106,16 @@ require_once 'navbar.php';
 
             <div class="map-container" style="margin-top: 30px;">
                 <h3 style="margin-bottom: 15px; color: #7f8c8d; font-size: 1rem; font-weight: 500;">Posizione Geografica</h3>
-                <iframe id="mappa-google"
-                        width="100%"
-                        height="350"
-                        style="border: 1px solid #e0e6ed; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);"
-                        loading="lazy"
-                        allowfullscreen
-                        src="https://maps.google.com/maps?q=<?php echo $primo_semaforo['latitudine']; ?>,<?php echo $primo_semaforo['longitudine']; ?>&z=16&output=embed">
-                </iframe>
+                <?php if ($primo_semaforo): ?>
+                    <iframe id="mappa-google"
+                            width="100%"
+                            height="350"
+                            style="border: 1px solid #e0e6ed; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);"
+                            loading="lazy"
+                            allowfullscreen
+                            src="https://maps.google.com/maps?q=<?php echo $primo_semaforo['latitudine']; ?>,<?php echo $primo_semaforo['longitudine']; ?>+(Semaforo:+<?php echo urlencode($primo_semaforo['codice_seriale']); ?>)&z=18&output=embed">
+                    </iframe>
+                <?php endif; ?>
             </div>
 
         <?php else: ?>
@@ -125,6 +130,18 @@ require_once 'navbar.php';
             <div class="luce rossa" id="luce-rosso"></div>
             <div class="luce gialla" id="luce-giallo"></div>
             <div class="luce verde" id="luce-verde"></div>
+        </div>
+
+        <div class="pulsantiera-semaforo">
+            <button class="btn-power btn-accendi" onclick="impostaStatoSemaforo('attivo')">
+                Accendi
+            </button>
+            <button class="btn-power btn-inattivo" onclick="impostaStatoSemaforo('inattivo')">
+                Inattivo
+            </button>
+            <button class="btn-power btn-spegni" onclick="impostaStatoSemaforo('spento')">
+                Spegni
+            </button>
         </div>
 
         <div style="margin-top: 25px; border-top: 1px solid #e0e6ed; padding-top: 15px;">
@@ -202,28 +219,40 @@ require_once 'navbar.php';
     }
 
     // Gestione switch di contesto da sidebar
+    const listaSemaforiCompleta = <?php echo $semafori_json; ?>;
+
+    // Gestione switch di contesto da sidebar e aggiornamento mappa dinamico
     document.querySelectorAll('.semaforo-item').forEach(item => {
         item.addEventListener('click', function() {
-            // Aggiornamento classe attiva
+            // Aggiornamento classe attiva nella sidebar
             document.querySelectorAll('.semaforo-item').forEach(el => el.classList.remove('active'));
             this.classList.add('active');
 
-            // Aggiornamento titolo e reset UI
-            document.getElementById('titolo-incrocio').innerText = this.getAttribute('data-nome');
+            // Recupero dei metadati dall'elemento HTML cliccato
+            const idSemaforo = this.getAttribute('data-id');
+            const nomeIncrocio = this.getAttribute('data-nome');
+            const lat = this.getAttribute('data-lat');
+            const lng = this.getAttribute('data-lng');
+
+            // Ricerca del codice seriale corrispondente nell'array locale
+            const datiDispositivo = listaSemaforiCompleta.find(s => s.id == idSemaforo);
+            const seriale = datiDispositivo ? datiDispositivo.codice_seriale : 'Sconosciuto';
+
+            // Aggiornamento titoli della dashboard e reset dei campi sensori
+            document.getElementById('titolo-incrocio').innerText = nomeIncrocio;
             document.getElementById('val_temp').innerText = '--';
             document.getElementById('val_umid').innerText = '--';
             document.getElementById('val_traffico').innerText = '--';
             document.getElementById('timestamp').innerText = 'Caricamento in corso...';
 
-            // Aggiornamento coordinate mappa
-            const lat = this.getAttribute('data-lat');
-            const lng = this.getAttribute('data-lng');
+            // Rigenerazione URL mappa con iniezione del codice seriale nel marker di Google
             if (lat && lng) {
-                document.getElementById('mappa-google').src = `https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed`;
+                const testoMarker = encodeURIComponent(`Seriale: ${seriale}`);
+                document.getElementById('mappa-google').src = `https://maps.google.com/maps?q=${lat},${lng}+(${testoMarker})&z=18&output=embed`;
             }
 
-            // Riavvvio fetch dati
-            semaforoCorrente = this.getAttribute('data-id');
+            // Riavvvio del ciclo di polling sul nuovo ID dispositivo
+            semaforoCorrente = idSemaforo;
             fetchDatiSensori();
         });
     });
@@ -252,6 +281,23 @@ require_once 'navbar.php';
 
         // Avvio connessione
         const client = mqtt.connect(brokerUrl, opzioniMqtt);
+
+        function impostaStatoSemaforo(statoRichiesto) {
+            // Verifica lo stato della connessione WebSocket prima dell'invio
+            if (!client || !client.connected) {
+                console.error("Errore: Client MQTT non connesso al broker.");
+                return;
+            }
+
+            // Pubblica il payload di testo sul topic di comando
+            client.publish('esp/stato', statoRichiesto, function(err) {
+                if (err) {
+                    console.error("Fallimento pubblicazione MQTT:", err);
+                } else {
+                    console.log("Comando hardware inviato: " + statoRichiesto);
+                }
+            });
+        }
 
         // Evento: Connessione Riuscita
         client.on('connect', function () {
@@ -302,6 +348,8 @@ require_once 'navbar.php';
             document.getElementById('luce-verde').classList.remove('attiva');
         }
     }
+
+
 </script>
 
 
