@@ -189,7 +189,7 @@ require_once 'navbar.php';
                 // Soglia di timeout fissata a 15 secondi (regolabile)
                 if (deltaSecondi > 15) {
                     // Dato obsoleto: dispositivo offline ma dati storici visualizzati
-                    document.getElementById('stato-connessione').innerText = 'Offline (Ultimo Dato)';
+                    document.getElementById('stato-connessione').innerText = 'Offline';
                     document.getElementById('stato-connessione').style.backgroundColor = '#f39c12'; // Arancione
                 } else {
                     // Dato recente: dispositivo regolarmente online
