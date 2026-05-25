@@ -70,7 +70,7 @@ require_once 'navbar.php';
 
             <div class="header-dati">
                 <div>
-                    <h1 id="titolo-incrocio"><?php echo htmlspecialchars($primo_semaforo['nome_incrocio']); ?></h1>
+                    <h1 id="titolo-incrocio">Incrocio:  <?php echo htmlspecialchars($primo_semaforo['nome_incrocio']); ?></h1>
                     <p style="color: #7f8c8d; margin-top: 5px;">Ultimo aggiornamento: <span id="timestamp">In attesa di dati...</span></p>
                 </div>
                 <div>
@@ -125,7 +125,7 @@ require_once 'navbar.php';
     </main>
 
     <div class="card" style="text-align: left;">
-        <h3>Stato Luci In Tempo Reale</h3>
+        <h3 style="text-align: center">Stato Luci in tempo reale</h3>
         <div class="semaforo-grafico">
             <div class="luce rossa" id="luce-rosso"></div>
             <div class="luce gialla" id="luce-giallo"></div>
@@ -168,33 +168,43 @@ require_once 'navbar.php';
         if (!semaforoCorrente) return;
 
         try {
-            // Esecuzione chiamata REST endpoint
             const response = await fetch(`api_sensori.php?id=${semaforoCorrente}`);
             const data = await response.json();
 
             if (data.payload) {
                 const payload = JSON.parse(data.payload);
 
+                // Popolamento interfaccia costante con l'ultimo dato noto
                 document.getElementById('timestamp').innerText = data.ricevuto_at;
                 document.getElementById('val_temp').innerText = payload.temperatura ?? '--';
                 document.getElementById('val_umid').innerText = payload.umidita ?? '--';
                 document.getElementById('val_traffico').innerText = payload.traffico ?? '--';
 
-                document.getElementById('stato-connessione').innerText = 'Online';
-                document.getElementById('stato-connessione').style.backgroundColor = '#2ecc71';
+                // Calcolo obsolescenza del dato (Delta Time)
+                // Converte le date in millisecondi per determinare se il dato è "fresco"
+                const tempoRicezione = new Date(data.ricevuto_at).getTime();
+                const tempoAttuale = new Date().getTime();
+                const deltaSecondi = (tempoAttuale - tempoRicezione) / 1000;
+
+                // Soglia di timeout fissata a 15 secondi (regolabile)
+                if (deltaSecondi > 15) {
+                    // Dato obsoleto: dispositivo offline ma dati storici visualizzati
+                    document.getElementById('stato-connessione').innerText = 'Offline (Ultimo Dato)';
+                    document.getElementById('stato-connessione').style.backgroundColor = '#f39c12'; // Arancione
+                } else {
+                    // Dato recente: dispositivo regolarmente online
+                    document.getElementById('stato-connessione').innerText = 'Online';
+                    document.getElementById('stato-connessione').style.backgroundColor = '#2ecc71'; // Verde
+                }
 
                 // --- LOGICA ALLERTE FISSE ---
                 const temp = parseFloat(payload.temperatura);
-
-                // Lettura del traffico come stringa (normalizzata in minuscolo per evitare errori di case-sensitivity)
                 const traffico = payload.traffico ? payload.traffico.toString().trim().toLowerCase() : '';
 
-                // 1. Reset: contrae e nasconde tutti gli avvisi ad ogni ciclo
                 document.getElementById('alert-ghiaccio').classList.remove('active');
                 document.getElementById('alert-calore').classList.remove('active');
                 document.getElementById('alert-traffico').classList.remove('active');
 
-                // 2. Valutazione soglie Termiche
                 if (!isNaN(temp)) {
                     if (temp <= 3) {
                         document.getElementById('alert-ghiaccio').classList.add('active');
@@ -203,11 +213,11 @@ require_once 'navbar.php';
                     }
                 }
 
-                // 3. Valutazione congestione Traffico (stringa)
                 if (traffico === 'alto') {
                     document.getElementById('alert-traffico').classList.add('active');
                 }
             } else {
+                // Questo scatta solo se il database è letteralmente vuoto per quel semaforo
                 document.getElementById('stato-connessione').innerText = 'Nessun Dato';
                 document.getElementById('stato-connessione').style.backgroundColor = '#e74c3c';
             }
@@ -239,7 +249,7 @@ require_once 'navbar.php';
             const seriale = datiDispositivo ? datiDispositivo.codice_seriale : 'Sconosciuto';
 
             // Aggiornamento titoli della dashboard e reset dei campi sensori
-            document.getElementById('titolo-incrocio').innerText = nomeIncrocio;
+            document.getElementById('titolo-incrocio').innerText = "Incrocio: " + nomeIncrocio;
             document.getElementById('val_temp').innerText = '--';
             document.getElementById('val_umid').innerText = '--';
             document.getElementById('val_traffico').innerText = '--';
@@ -290,7 +300,7 @@ require_once 'navbar.php';
             }
 
             // Pubblica il payload di testo sul topic di comando
-            client.publish('esp/stato', statoRichiesto, function(err) {
+            client.publish('esp/comandi', statoRichiesto, function(err) {
                 if (err) {
                     console.error("Fallimento pubblicazione MQTT:", err);
                 } else {
