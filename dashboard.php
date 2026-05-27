@@ -96,7 +96,7 @@ require_once 'navbar.php';
             <div class="sensor-grid">
                 <div class="card">
                     <h3>Visibilità</h3>
-                    <span class="valore" id="val_visibilita">--</span><span class="unita">%</span>
+                    <span class="valore" id="val_visibilita" >--</span>
                     <div id="label_visibilita" style="font-size: 0.9rem; color: #7f8c8d; margin-top: 5px; font-weight: 500;"></div>
                 </div>
                 <div class="card">
@@ -185,17 +185,15 @@ require_once 'navbar.php';
 
                 // --- CALCOLO LUMINOSITA' E VISIBILITA' ---
                 if (payload.luminosita !== undefined && payload.luminosita !== null) {
-                    const lum = parseInt(payload.luminosita);
-                    document.getElementById('val_visibilita').innerText = lum;
+                    const cE_luce = payload.luminosita === true || payload.luminosita === "true";
 
-                    // Assegnazione etichetta descrittiva in base alle soglie
-                    let testoVisibilita = "";
-                    if (lum >= 80) testoVisibilita = "(Ottima)";
-                    else if (lum >= 50) testoVisibilita = "(Buona)";
-                    else if (lum >= 20) testoVisibilita = "(Scarsa)";
-                    else testoVisibilita = "(Buio/Pessima)";
-
-                    document.getElementById('label_visibilita').innerText = testoVisibilita;
+                    if (cE_luce) {
+                        document.getElementById('val_visibilita').innerText = 'Buona';
+                        document.getElementById('label_visibilita').innerText = 'Illuminazione sufficiente';
+                    } else {
+                        document.getElementById('val_visibilita').innerText = 'Scarsa';
+                        document.getElementById('label_visibilita').innerText = 'Poca illuminazione';
+                    }
                 } else {
                     document.getElementById('val_visibilita').innerText = '--';
                     document.getElementById('label_visibilita').innerText = '';
@@ -337,7 +335,7 @@ require_once 'navbar.php';
             }
 
             // Pubblica il payload di testo sul topic di comando
-            client.publish('esp/stato', statoRichiesto, function(err) {
+            client.publish('esp/comandi', statoRichiesto, function(err) {
                 if (err) {
                     console.error("Fallimento pubblicazione MQTT:", err);
                 } else {
