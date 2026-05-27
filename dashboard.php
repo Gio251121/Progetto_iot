@@ -96,11 +96,12 @@ require_once 'navbar.php';
             <div class="sensor-grid">
                 <div class="card">
                     <h3>Visibilità</h3>
-                    <span class="valore" id="val_temp">--</span><span class="unita">°C</span>
+                    <span class="valore" id="val_visibilita">--</span><span class="unita">%</span>
+                    <div id="label_visibilita" style="font-size: 0.9rem; color: #7f8c8d; margin-top: 5px; font-weight: 500;"></div>
                 </div>
                 <div class="card">
-                    <h3>Pioggia</h3>
-                    <span class="valore" id="val_temp">--</span><span class="unita">°C</span>
+                    <h3>Stato Asfalto (Pioggia)</h3>
+                    <span class="valore" id="val_pioggia">--</span>
                 </div>
             </div>
 
@@ -148,10 +149,11 @@ require_once 'navbar.php';
             <h4 style="color: #7f8c8d; margin-bottom: 10px; font-size: 1rem; text-align: left;">Indicatori Diagnostici</h4>
 
             <div id="pannello-allerte" style="display: flex; flex-direction: column;">
-                <div id="alert-ghiaccio" class="alert-dynamic">Pericolo ghiaccio in carreggiata</div>
+                <div id="alert-ghiaccio" class="alert-dynamic">Temperatura molto bassa</div>
                 <div id="alert-calore" class="alert-dynamic">Surriscaldamento asfalto o hardware</div>
                 <div id="alert-traffico" class="alert-dynamic">Congestione traffico rilevata</div>
-                <div id="alert" class="alert-dynamic">Nessun problema da rilevare</div>
+                <div id="alert-visibilita" class="alert-dynamic">Poca visibilità</div>
+                <div id="alert-pioggia" class="alert-dynamic">Strada bagnata</div>
             </div>
         </div>
     </div>
@@ -175,39 +177,85 @@ require_once 'navbar.php';
             if (data.payload) {
                 const payload = JSON.parse(data.payload);
 
+                // Aggiornamento campi base
                 document.getElementById('timestamp').innerText = data.ricevuto_at;
                 document.getElementById('val_temp').innerText = payload.temperatura ?? '--';
                 document.getElementById('val_umid').innerText = payload.umidita ?? '--';
                 document.getElementById('val_traffico').innerText = payload.traffico ?? '--';
+
+                // --- CALCOLO LUMINOSITA' E VISIBILITA' ---
+                if (payload.luminosita !== undefined && payload.luminosita !== null) {
+                    const lum = parseInt(payload.luminosita);
+                    document.getElementById('val_visibilita').innerText = lum;
+
+                    // Assegnazione etichetta descrittiva in base alle soglie
+                    let testoVisibilita = "";
+                    if (lum >= 80) testoVisibilita = "(Ottima)";
+                    else if (lum >= 50) testoVisibilita = "(Buona)";
+                    else if (lum >= 20) testoVisibilita = "(Scarsa)";
+                    else testoVisibilita = "(Buio/Pessima)";
+
+                    document.getElementById('label_visibilita').innerText = testoVisibilita;
+                } else {
+                    document.getElementById('val_visibilita').innerText = '--';
+                    document.getElementById('label_visibilita').innerText = '';
+                }
+
+                // --- VALUTAZIONE SENSORE PIOGGIA (Booleano) ---
+                if (payload.acqua !== undefined && payload.acqua !== null) {
+                    const elementoPioggia = document.getElementById('val_pioggia');
+                    // Se true rileva acqua, se false è asciutto
+                    if (payload.acqua === true || payload.acqua === "true") {
+                        elementoPioggia.innerText = 'Bagnato ';
+                    } else {
+                        elementoPioggia.innerText = 'Asciutto ';
+                        elementoPioggia.style.color = '#2c3e50';
+                    }
+                } else {
+                    document.getElementById('val_pioggia').innerText = '--';
+                    document.getElementById('val_pioggia').style.color = '#2c3e50';
+                }
+
 
                 document.getElementById('stato-connessione').innerText = 'Online';
                 document.getElementById('stato-connessione').style.backgroundColor = '#2ecc71';
 
                 // --- LOGICA ALLERTE FISSE ---
                 const temp = parseFloat(payload.temperatura);
-
-                // Lettura del traffico come stringa (normalizzata in minuscolo per evitare errori di case-sensitivity)
                 const traffico = payload.traffico ? payload.traffico.toString().trim().toLowerCase() : '';
+                const lum = parseInt(payload.luminosita);
+                const acqua = payload.acqua === true || payload.acqua === "true";
 
-                // 1. Reset: contrae e nasconde tutti gli avvisi ad ogni ciclo
+                // 1. Reset globale dello stato visivo degli allarmi
                 document.getElementById('alert-ghiaccio').classList.remove('active');
                 document.getElementById('alert-calore').classList.remove('active');
                 document.getElementById('alert-traffico').classList.remove('active');
+                document.getElementById('alert-visibilita').classList.remove('active');
+                document.getElementById('alert-pioggia').classList.remove('active');
 
-                // 2. Valutazione soglie Termiche
+                // 2. Valutazione e attivazione condizionale
+
+                // Controllo termico per ghiaccio o surriscaldamento
                 if (!isNaN(temp)) {
-                    if (temp <= 3) {
-                        document.getElementById('alert-ghiaccio').classList.add('active');
-                    } else if (temp >= 28) {
-                        document.getElementById('alert-calore').classList.add('active');
-                    }
+                    if (temp <= 3) document.getElementById('alert-ghiaccio').classList.add('active');
+                    else if (temp >= 28) document.getElementById('alert-calore').classList.add('active');
                 }
 
-                // 3. Valutazione congestione Traffico (stringa)
+                // Controllo densità traffico
                 if (traffico === 'alto') {
                     document.getElementById('alert-traffico').classList.add('active');
                 }
-            } else {
+
+                // Controllo luminosità ambientale (soglia critica impostata sotto il 20%)
+                if (!isNaN(lum) && lum < 20) {
+                    document.getElementById('alert-visibilita').classList.add('active');
+                }
+
+                // Controllo stato asfalto tramite sensore pioggia
+                if (acqua) {
+                    document.getElementById('alert-pioggia').classList.add('active');
+                }
+            }else {
                 document.getElementById('stato-connessione').innerText = 'Nessun Dato';
                 document.getElementById('stato-connessione').style.backgroundColor = '#e74c3c';
             }
@@ -221,37 +269,36 @@ require_once 'navbar.php';
     // Gestione switch di contesto da sidebar
     const listaSemaforiCompleta = <?php echo $semafori_json; ?>;
 
-    // Gestione switch di contesto da sidebar e aggiornamento mappa dinamico
     document.querySelectorAll('.semaforo-item').forEach(item => {
         item.addEventListener('click', function() {
-            // Aggiornamento classe attiva nella sidebar
             document.querySelectorAll('.semaforo-item').forEach(el => el.classList.remove('active'));
             this.classList.add('active');
 
-            // Recupero dei metadati dall'elemento HTML cliccato
             const idSemaforo = this.getAttribute('data-id');
             const nomeIncrocio = this.getAttribute('data-nome');
             const lat = this.getAttribute('data-lat');
             const lng = this.getAttribute('data-lng');
 
-            // Ricerca del codice seriale corrispondente nell'array locale
             const datiDispositivo = listaSemaforiCompleta.find(s => s.id == idSemaforo);
             const seriale = datiDispositivo ? datiDispositivo.codice_seriale : 'Sconosciuto';
 
-            // Aggiornamento titoli della dashboard e reset dei campi sensori
+            // Reset visivo di TUTTI i campi sensori in attesa del nuovo caricamento
             document.getElementById('titolo-incrocio').innerText = nomeIncrocio;
             document.getElementById('val_temp').innerText = '--';
             document.getElementById('val_umid').innerText = '--';
             document.getElementById('val_traffico').innerText = '--';
+            document.getElementById('val_visibilita').innerText = '--';
+            document.getElementById('label_visibilita').innerText = '';
+            document.getElementById('val_pioggia').innerText = '--';
+            document.getElementById('val_pioggia').style.color = '#2c3e50';
             document.getElementById('timestamp').innerText = 'Caricamento in corso...';
 
-            // Rigenerazione URL mappa con iniezione del codice seriale nel marker di Google
             if (lat && lng) {
                 const testoMarker = encodeURIComponent(`Seriale: ${seriale}`);
                 document.getElementById('mappa-google').src = `https://maps.google.com/maps?q=${lat},${lng}+(${testoMarker})&z=18&output=embed`;
             }
 
-            // Riavvvio del ciclo di polling sul nuovo ID dispositivo
+            // Riavvvio del ciclo sul nuovo ID
             semaforoCorrente = idSemaforo;
             fetchDatiSensori();
         });
