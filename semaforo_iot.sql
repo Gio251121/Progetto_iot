@@ -78,7 +78,7 @@ CREATE TABLE `semafori` (
 --
 
 INSERT INTO `semafori` (`id`, `codice_seriale`, `nome_incrocio`, `password`, `latitudine`, `longitudine`, `creato_at`, `aggiornato_at`) VALUES
-                                                                                                                                            (1, 'semaforo_01', 'Rotonda', '$2y$10$7Z8Hh9Kx7mB9L4dE2fR3uOnVxY6ZpWqQrRsStTuUvVwWxXyYzZmMa', 45.55264100, 11.55381100, '2026-05-22 08:38:14', '2026-05-23 05:47:26'),
+                                                                                                                                            (1, 'SR-2001-VI', 'Incrocio C.so Padova / V.le Margherita', '$2y$10$7Z8Hh9Kx7mB9L4dE2fR3uOnVxY6ZpWqQrRsStTuUvVwWxXyYzZmMa', 45.54882300, 11.55577600, '2026-05-22 08:38:14', '2026-05-23 05:47:26'),
                                                                                                                                             (2, 'SR-77X2-VI', 'Rotonda ITIS Rossi - Lato Est', '', 45.55032000, 11.55661000, '2026-05-24 14:22:40', '2026-05-24 14:22:40'),
                                                                                                                                             (3, 'SR-1011-VI', 'Incrocio Stazione - Viale Milano / Viale dell Ippodromo', '', 45.54280000, 11.54010000, '2026-05-24 16:01:55', '2026-05-24 16:01:55'),
                                                                                                                                             (4, 'SR-1022-VI', 'Zona Ovest - Viale San Lazzaro / Via Rossi', '', 45.53920000, 11.51750000, '2026-05-24 16:01:55', '2026-05-24 16:01:55'),

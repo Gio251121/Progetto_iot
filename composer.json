@@ -1,0 +1,6 @@
+{
+    "require": {
+        "mongodb/mongodb": "^2.3",
+        "php-mqtt/client": "^2.3"
+    }
+}
