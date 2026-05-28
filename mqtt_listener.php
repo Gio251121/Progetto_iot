@@ -142,7 +142,7 @@ try {
 
         try {
 
-            echo "scheda valida ooooooooooooooooooo";
+            echo " \n scheda valida \n";
 
 
         } catch (\Exception $e) {
