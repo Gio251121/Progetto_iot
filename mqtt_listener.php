@@ -112,7 +112,7 @@ try {
 
             $codice_seriale = trim($message);
 
-            $stmt = $pdo->prepare("SELECT RFID, livello FROM disabili WHERE RFID = ?");
+            $stmt = $pdo->prepare("SELECT rfid, livello FROM disabili WHERE rfid = ?");
             $stmt->execute([$codice_seriale]);
 
             $record = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -120,7 +120,7 @@ try {
             if ($record) {
 
                 $json = [
-                    'rfid' => $record['RFID'],
+                    'rfid' => $record['rfid'],
                     'livello' => $record['livello']
                 ];
 
