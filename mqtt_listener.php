@@ -105,6 +105,51 @@ try {
         }
     }, 1);
 
+    $mqtt->subscribe('esp/rfid', function (string $topic, string $message) use ($mqtt, $pdo) {
+        echo " scheda rfid ricevuta.\n";
+
+        try {
+
+            $codice_seriale = trim($message);
+
+            $stmt = $pdo->prepare("SELECT RFID, livello FROM disabili WHERE RFID = ?");
+            $stmt->execute([$codice_seriale]);
+
+            $record = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($record) {
+
+                $json = [
+                    'rfid' => $record['RFID'],
+                    'livello' => $record['livello']
+                ];
+
+
+                $payload = json_encode($json);
+                echo $payload;
+                $mqtt->publish('esp/rfid/risposta', $payload, 1);
+            }else{
+                $mqtt->publish('esp/rfid/risposta', "non valido", 1);
+            }
+
+
+        } catch (\Exception $e) {
+            echo "❌ Errore estrazione dati geografici: " . $e->getMessage() . "\n";
+        }
+    }, 1);
+
+    $mqtt->subscribe('esp/rfid/risposta', function (string $topic, string $message) use ($mqtt, $pdo) {
+
+        try {
+
+            echo " \n scheda valida \n";
+
+
+        } catch (\Exception $e) {
+            echo "❌ Errore estrazione dati geografici: " . $e->getMessage() . "\n";
+        }
+    }, 1);
+
     // Sottoscrizione per ricezione dati sensori su topic statico
     $mqtt->subscribe('esp/dati', function (string $topic, string $message) use ($pdo) {
         // Assegnazione statica dell'ID semaforo
