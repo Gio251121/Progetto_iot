@@ -298,7 +298,6 @@ require_once 'navbar.php';
         });
     });
 
-    // Avvio ciclo di polling iniziale
     if (semaforoCorrente) {
         fetchDatiSensori();
         pollingInterval = setInterval(fetchDatiSensori, 2000);
