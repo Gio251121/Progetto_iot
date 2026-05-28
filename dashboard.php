@@ -154,9 +154,6 @@ require_once 'navbar.php';
                 <div id="alert-traffico" class="alert-dynamic">Congestione traffico rilevata</div>
                 <div id="alert-visibilita" class="alert-dynamic">Poca visibilità</div>
                 <div id="alert-pioggia" class="alert-dynamic">Strada bagnata</div>
-                <div id="alert-terremoto" class="alert-dynamic">
-                    Vibrazioni / Terremoto rilevato
-                </div>
             </div>
         </div>
     </div>
@@ -185,21 +182,6 @@ require_once 'navbar.php';
                 document.getElementById('val_temp').innerText = payload.temperatura ?? '--';
                 document.getElementById('val_umid').innerText = payload.umidita ?? '--';
                 document.getElementById('val_traffico').innerText = payload.traffico ?? '--';
-
-                if (payload.terremoto !== undefined) {
-
-                    const terremoto = payload.terremoto === true || payload.terremoto === "true";
-
-                    // reset stato
-                    document.getElementById('alert-terremoto').classList.remove('active');
-
-                    if (terremoto) {
-
-                        document.getElementById('alert-terremoto').classList.add('active');
-
-                    }
-                }
-
                 // --- CALCOLO LUMINOSITA' E VISIBILITA' ---
                 if (payload.luminosita !== undefined && payload.luminosita !== null) {
                     const cE_luce = payload.luminosita === true || payload.luminosita === "true";
