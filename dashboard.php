@@ -100,7 +100,7 @@ require_once 'navbar.php';
                     <div id="label_visibilita" style="font-size: 0.9rem; color: #7f8c8d; margin-top: 5px; font-weight: 500;"></div>
                 </div>
                 <div class="card">
-                    <h3>Stato Asfalto (Pioggia)</h3>
+                    <h3>Stato Asfalto</h3>
                     <span class="valore" id="val_pioggia">--</span>
                 </div>
             </div>
@@ -189,10 +189,10 @@ require_once 'navbar.php';
 
                     if (cE_luce) {
                         document.getElementById('val_visibilita').innerText = 'Buona';
-                        document.getElementById('label_visibilita').innerText = 'Illuminazione sufficiente';
+                        document.getElementById('label_visibilita').innerText = '';
                     } else {
                         document.getElementById('val_visibilita').innerText = 'Scarsa';
-                        document.getElementById('label_visibilita').innerText = 'Poca illuminazione';
+                        document.getElementById('label_visibilita').innerText = '';
                     }
                 } else {
                     document.getElementById('val_visibilita').innerText = '--';
@@ -231,12 +231,9 @@ require_once 'navbar.php';
                 document.getElementById('alert-visibilita').classList.remove('active');
                 document.getElementById('alert-pioggia').classList.remove('active');
 
-                // 2. Valutazione e attivazione condizionale
-
-                // Controllo termico per ghiaccio o surriscaldamento
                 if (!isNaN(temp)) {
                     if (temp <= 3) document.getElementById('alert-ghiaccio').classList.add('active');
-                    else if (temp >= 28) document.getElementById('alert-calore').classList.add('active');
+                    else if (temp >= 30) document.getElementById('alert-calore').classList.add('active');
                 }
 
                 // Controllo densità traffico
